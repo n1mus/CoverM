@@ -1,6 +1,7 @@
 import os
 import logging
 from pprint import pprint
+import functools
 
 from installed_clients.AssemblyUtilClient import AssemblyUtil
 from installed_clients.DataFileUtilClient import DataFileUtil
@@ -10,10 +11,10 @@ from installed_clients.ReadsUtilsClient import ReadsUtils
 from installed_clients.WorkspaceClient import Workspace
 from installed_clients.SetAPIServiceClient import SetAPI
 
-
+print = functools.partial(print, flush=True)
 
 ####################################################################################################################
-##### Code below from kb_gtdbk
+##### Code below from kb_gtdbk (with edits)
 ####################################################################################################################
 
 
@@ -77,7 +78,7 @@ def load_fastas(config, scratch, upa):
 
 
 ####################################################################################################################
-##### Code below from kb_hisat2
+##### Code below from kb_hisat2 (with edits)
 ####################################################################################################################
 
 
@@ -133,7 +134,7 @@ def fetch_reads_refs_from_sampleset(ref, ws_url, srv_wiz_url):
 
 
 
-def fetch_reads_from_reference(ref, callback_url):
+def dl_getPath_from_upa(ref, callback_url):
     """
     Fetch a FASTQ file (or 2 for paired-end) from a reads reference.
     Returns the following structure:

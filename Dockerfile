@@ -15,7 +15,23 @@ RUN rm -r coverm*
 
 RUN curl -L https://github.com/lh3/minimap2/releases/download/v2.17/minimap2-2.17_x64-linux.tar.bz2 | tar -jxvf -
 RUN mv minimap2-2.17_x64-linux/minimap2 /usr/local/bin/minimap2
-RUN rmdir minimap2-2.17_x64-linux/
+RUN rm -rf minimap2-2.17_x64-linux/
+
+
+RUN sudo apt-get --yes update
+RUN sudo apt-get --yes install gcc
+RUN sudo apt-get --yes install make
+RUN sudo apt-get --yes install libbz2-dev
+RUN sudo apt-get --yes install zlib1g-dev
+RUN sudo apt-get --yes install libncurses5-dev 
+RUN sudo apt-get --yes install libncursesw5-dev
+RUN sudo apt-get --yes install liblzma-dev
+RUN curl --location https://github.com/samtools/samtools/releases/download/1.9/samtools-1.9.tar.bz2 > samtools-1.9.tar.bz2
+RUN tar -vxjf samtools-1.9.tar.bz2 && rm -rf samtools-1.9.tar.bz2
+RUN cd samtools-1.9 && make
+RUN mv samtools-1.9 /usr/local/bin/samtools-1.9
+ENV PATH="${PATH}:/usr/local/bin/samtools-1.9"
+RUN echo !!!!!!!!!! SAMTOOLS INSTALLED && echo $PATH
 
 
 # -----------------------------------------

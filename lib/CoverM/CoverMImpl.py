@@ -4,6 +4,7 @@ import logging
 import os
 import subprocess
 from pprint import pprint
+from itertools import repeat
 
 from Bio import SeqIO
 
@@ -78,7 +79,7 @@ class CoverM:
         #BEGIN run_CoverM
         ############################################################################################
         ############################################################################################
-        # TODO handle alignment input
+        # TODO handle alignment input (also install htslib)
         # TODO check if alignment/reads input matches with assembly provenance info
 
         dprint(f'Running run_CoverM with:\nctx: {ctx}\nparams: {params}')
@@ -97,6 +98,11 @@ class CoverM:
             reads_ref = params['reads_ref']
 
         cmd = ['coverm', 'genome']
+        cmd.extend('-m relative_abundance mean trimmed_mean covered_fraction covered_bases variance count reads_per_base rpkm'.split()) # TODO coverage_histogram, 
+        cmd.extend('--min-covered-fraction 0'.split())
+        cmd.extend('--bam-file-cache-directory bam_dir'.split()) # Output BAM files generated during alignment to this directory
+
+
 
         # RETRIEVE FASTAS
         
@@ -105,30 +111,29 @@ class CoverM:
 
         #
         fasta_paths = Util.load_fastas(self.config, self.shared_folder, genome_ref) # ref -> [(path,upa)]
+                                                                                    # hopefully each fasta is a genome (?)
 
 
-
-        dprint(f'fasta_paths: {fasta_paths}')
-        dprint(f'Num fastas: {len(fasta_paths)}')
-        dprint(f'Exploring fastas in obj: {fasta_paths}')
+        dprint(f'FASTA_PATHS: {fasta_paths}')
+        dprint(f'NUM FASTAS: {len(fasta_paths)}')
         for fasta_path in fasta_paths:
             dprint(f'path: {fasta_paths[0][0]}, upa: {fasta_paths[0][1]}')
 
-        genome_paths = []
-        for fasta_path in fasta_paths:
-            genome_paths.append(fasta_path[0])
 
+
+        fasta_paths = [path for (path,_) in fasta_paths]
+        
        
 
 
         #
         cmd.append('--genome-fasta-files')
-        cmd.extend(genome_paths)
+        cmd.extend(fasta_paths)
 
 
         # RETRIEVE ALIGNMENT
         if mapping_ref:
-            pass
+            raise NotImplementedError()
 
         elif reads_ref:
             dprint('Retrieving reads')
@@ -147,19 +152,45 @@ class CoverM:
             dprint(f'readsRef_fileInfo_list: {readsRef_fileInfo_list}')
 
             for readsRef_fileInfo in readsRef_fileInfo_list:
+            reads_path = reads_pathAndInfo['files'][reads_ref]['files']['fwd_name']
             '''
 
-            # RETRIEVE READS
-            reads_objs = ReadsUtils(self.callback_url).download_reads({ 
-                                                                        "read_libraries": [reads_ref],
+
+            # GET ALL REFS IF REF IS TO SET
+            dprint(f'reads_ref before fetch from sampleset: {reads_ref}') 
+            reads_refsAndInfo = Util.fetch_reads_refs_from_sampleset(reads_ref, self.workspace_url, self.srv_wiz_url) # upa -> [{'ref':upa,'name':name}]
+            dprint(f'reads_refsAndInfo after fetch from sampleset: {reads_refsAndInfo}')
+
+
+            # ISOLATE REFS
+            reads_refs = [reads_refAndInfo['ref'] for reads_refAndInfo in reads_refsAndInfo]
+
+
+            # REFS -> PATHS
+            reads_pathsAndInfo = list(map(Util.dl_getPath_from_upa, reads_refs, repeat(self.callback_url)))
+            
+
+            # SEPARATE PATHS BY TYPE
+            readsPaths_byType_dict = dict()
+            readsPaths_byType_dict['single'] = [reads_pathAndInfo['file_fwd'] for reads_pathAndInfo in reads_pathsAndInfo if reads_pathAndInfo['style'] == 'single']
+            readsPaths_byType_dict['interleaved'] = [reads_pathAndInfo['file_fwd'] for reads_pathAndInfo in reads_pathsAndInfo if reads_pathAndInfo['style'] == 'interleaved']
+
+
+            '''
+            reads_pathAndInfo = ReadsUtils(self.callback_url).download_reads({ 
+                                                                        "read_libraries": [reads_refs],
                                                                         "interleaved": "true"
 
                                                                         })
+                                                                        
+            dprint(f'reads_pathAndInfo:')
+            dprint(reads_pathAndInfo)
 
-            dprint(f'reads_objs:')
-            dprint(reads_objs)
 
-            reads_path = reads_objs['files'][reads_ref]['files']['fwd_name']
+            '''
+
+
+
 
             #
             cmd.append('--mapper')
@@ -174,12 +205,20 @@ class CoverM:
                                        #  provided and --sharded is specified,
                                        #  then reads will be mapped to references
                                        #  separately as sharded BAMs.
-            cmd.extend(genome_paths)
+            cmd.extend(fasta_paths)
 
-            cmd.append('--interleaved') # interleaved FASTA(Q) files for mapping
-            cmd.append(reads_path)
+            
+            # ADD READS PATHS TO CMD
 
-            cmd.append('--bam-file-cache-directory') # Output BAM files generated during alignment to this directory
+            if readsPaths_byType_dict['interleaved']:
+                cmd.append('--interleaved') # interleaved FASTA(Q) files for mapping
+                cmd.extend(readsPaths_byType_dict['interleaved'])
+
+            if readsPaths_byType_dict['single']:
+                cmd.append('--single')
+                cmd.extend(readsPaths_byType_dict['single'])
+
+
 
 
         else:
@@ -187,12 +226,10 @@ class CoverM:
 
         
 
-        cmd.extend('-m relative_abundance mean trimmed_mean covered_fraction covered_bases variance count reads_per_base rpkm'.split()] # TODO coverage_histogram, 
-        cmd.extend('-min-covered-fraction 0'.split())
-
-
 
         #
+        dprint(cmd)
+        dprint('RUNNING CMD')
         subprocess.run(cmd)
 
 

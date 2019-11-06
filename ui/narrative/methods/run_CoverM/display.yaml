@@ -49,7 +49,7 @@ parameters :
         ui-name : | 
             Mapper
         short-hint : |
-            Mapper to align input reads to input genome
+            Mapper to align input reads to input genome. sr - short read, ont - oxford nanopore, pb - pacific bio.
 
 
 description : |

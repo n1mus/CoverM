@@ -14,7 +14,7 @@
             "id": "genome_ref",
             "optional": false,
             "advanced": false,
-            "allow_multiple": true,
+            "allow_multiple": false,
             "default_values": [ "" ],
             "field_type": "text",
             "text_options": {
@@ -24,7 +24,7 @@
             "id": "mapping_ref",
             "optional": true,
             "advanced": false,
-            "allow_multiple": true,
+            "allow_multiple": false,
             "default_values": [ "" ],
             "field_type": "text",
             "text_options": {
@@ -35,7 +35,7 @@
             "id": "reads_ref",
             "optional": false,
             "advanced": false,
-            "allow_multiple": true,
+            "allow_multiple": false,
             "default_values": [ "" ],
             "field_type": "text",
             "text_options": {
@@ -61,6 +61,21 @@
                         "display": "bwa-mem",
                         "id": "bwa-mem",
                         "ui-name": "bwa-mem"
+                    },{
+                        "value": "minimap2-ont",
+                        "display": "minimap2-ont",
+                        "id": "minimap2-ont",
+                        "ui-name": "minimap2-ont"
+                    },{
+                        "value": "minimap2-pb",
+                        "display": "minimap2-pb",
+                        "id": "minimap2-pb",
+                        "ui-name": "minimap2-pb"
+                    },{
+                        "value": "minimap2-no-preset",
+                        "display": "minimap2-no-preset",
+                        "id": "minimap2-no-preset",
+                        "ui-name": "minimap2-no-preset"
                     }
 
                 ]
