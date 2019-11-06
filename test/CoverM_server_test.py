@@ -13,7 +13,10 @@ from installed_clients.WorkspaceClient import Workspace
 
 class CoverMTest(unittest.TestCase):
 
-    contigsRef = '79/16/1'
+    S_oneidensis_assembly_upa = '79/16/1'
+
+    Rhodobacter_assembly_upa = '33163/3/1'
+    rhodo_pairedEndLib_upa = '33163/2/1'
 
     @classmethod
     def setUpClass(cls):
@@ -49,7 +52,7 @@ class CoverMTest(unittest.TestCase):
         ret = cls.wsClient.create_workspace({'workspace': cls.wsName})  # noqa
 
 
-    def test_read_FASTA(self):
+    def test_pipeline(self):
         # Prepare test objects in workspace if needed using
         # self.getWsClient().save_objects({'workspace': self.getWsName(),
         #                                  'objects': []})
@@ -61,10 +64,11 @@ class CoverMTest(unittest.TestCase):
         # self.assertEqual(ret[...], ...) or other unittest methods
         result = self.serviceImpl.run_CoverM(self.ctx, {
             'workspace_name': self.wsName,
-            'genome_or_mag_refs': self.contigsRef,
-            'mapping_refs': None
+            'genome_ref': self.Rhodobacter_assembly_upa,
+            'reads_ref': self.rhodo_pairedEndLib_upa,
+            'mapper': 'minimap2-sr'
             })
-
+    
     @classmethod
     def tearDownClass(cls):
         if hasattr(cls, 'wsName'):

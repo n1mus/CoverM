@@ -13,6 +13,10 @@ RUN tar xvfz coverm.tar.gz
 RUN mv coverm-x86_64-unknown-linux-musl-0.3.0/coverm /usr/local/bin/coverm
 RUN rm -r coverm*
 
+RUN curl -L https://github.com/lh3/minimap2/releases/download/v2.17/minimap2-2.17_x64-linux.tar.bz2 | tar -jxvf -
+RUN mv minimap2-2.17_x64-linux/minimap2 /usr/local/bin/minimap2
+RUN rmdir minimap2-2.17_x64-linux/
+
 
 # -----------------------------------------
 
