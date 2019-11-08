@@ -3,8 +3,8 @@
 import logging
 import os
 import subprocess
-from pprint import pprint
-from itertools import repeat
+import pprint
+import itertools
 
 from Bio import SeqIO
 
@@ -12,13 +12,10 @@ from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.AssemblyUtilClient import AssemblyUtil
 from installed_clients.ReadsUtilsClient import ReadsUtils
 
-from . import Util
+from . import FileUtil, OutputUtil
+from .PrintUtil import *
 
-def dprint(*args, **kwargs):
-    print('##############################################################', flush=True)
-    if isinstance(args[0], dict):
-        pprint(args[0])
-    print(*args, flush=True, **kwargs)
+
 
 #END_HEADER
 
@@ -87,21 +84,12 @@ class CoverM:
 
         genome_ref = params['genome_ref']
 
-        if not 'mapping_ref' in params:
-            mapping_ref = None
-        else:
-            mapping_ref = params['mapping_ref']
-            
-        if not 'reads_ref' in params:
-            reads_ref = None
-        else:
-            reads_ref = params['reads_ref']
 
-        cmd = ['coverm', 'genome']
-        cmd.extend('-m relative_abundance mean trimmed_mean covered_fraction covered_bases variance count reads_per_base rpkm'.split()) # TODO coverage_histogram, 
+        cmd = ['coverm']
+        cmd.append(params['cover_per'])
         cmd.extend('--min-covered-fraction 0'.split())
         cmd.extend('--bam-file-cache-directory bam_dir'.split()) # Output BAM files generated during alignment to this directory
-
+        cmd.extend('--output-format sparse'.split())
 
 
         # RETRIEVE FASTAS
@@ -110,7 +98,7 @@ class CoverM:
 
 
         #
-        fasta_paths = Util.load_fastas(self.config, self.shared_folder, genome_ref) # ref -> [(path,upa)]
+        fasta_paths = FileUtil.load_fastas(self.config, self.shared_folder, genome_ref) # ref -> [(path,upa)]
                                                                                     # hopefully each fasta is a genome (?)
 
 
@@ -127,15 +115,16 @@ class CoverM:
 
 
         #
-        cmd.append('--genome-fasta-files')
-        cmd.extend(fasta_paths)
+        if params['cover_per'] == 'genome':
+            cmd.append('--genome-fasta-files')
+            cmd.extend(fasta_paths)
 
 
-        # RETRIEVE ALIGNMENT
-        if mapping_ref:
+        # RETRIEVE READS OR ALIGNMENT
+        if 'mapping_ref' in params and params['mapping_ref'] != None:
             raise NotImplementedError()
 
-        elif reads_ref:
+        elif 'reads_ref' in params and params['reads_ref'] != None:
             dprint('Retrieving reads')
             '''
             # get all refs if ref is to set
@@ -157,8 +146,9 @@ class CoverM:
 
 
             # GET ALL REFS IF REF IS TO SET
+            reads_ref = params['reads_ref']
             dprint(f'reads_ref before fetch from sampleset: {reads_ref}') 
-            reads_refsAndInfo = Util.fetch_reads_refs_from_sampleset(reads_ref, self.workspace_url, self.srv_wiz_url) # upa -> [{'ref':upa,'name':name}]
+            reads_refsAndInfo = FileUtil.fetch_reads_refs_from_sampleset(reads_ref, self.workspace_url, self.srv_wiz_url) # upa -> [{'ref':upa,'name':name}]
             dprint(f'reads_refsAndInfo after fetch from sampleset: {reads_refsAndInfo}')
 
 
@@ -167,7 +157,7 @@ class CoverM:
 
 
             # REFS -> PATHS
-            reads_pathsAndInfo = list(map(Util.dl_getPath_from_upa, reads_refs, repeat(self.callback_url)))
+            reads_pathsAndInfo = list(map(FileUtil.dl_getPath_from_upa, reads_refs, itertools.repeat(self.callback_url)))
             
 
             # SEPARATE PATHS BY TYPE
@@ -227,14 +217,30 @@ class CoverM:
         
 
 
-        #
-        dprint(cmd)
-        dprint('RUNNING CMD')
-        subprocess.run(cmd)
+        # OUTPUT TYPE ARGS
+
+        out_args_genStats = '--methods relative_abundance mean trimmed_mean covered_fraction covered_bases variance length count reads_per_base rpkm'.split()  
+        out_args_hist = '--methods coverage_histogram'.split()
+        out_args_metabat = '--methods metabat'.split()
+                
+
+        if params['cover_per'] == 'contig':
+            out_args_genStats.remove('relative_abundance')
 
 
+
+        # RUN CMD
+
+        dprint('CMDs:', cmd, out_args_genStats, out_args_hist)
 
         
+        
+
+        dprint('RUNNING/PRINT STATS CMD'); out_genStats = subprocess.run(cmd + out_args_genStats, stdout=subprocess.PIPE).stdout.decode('utf-8'); dprint(out_genStats)
+        dprint('RUNNING/PRINT HIST CMD'); out_hist = subprocess.run(cmd + out_args_hist, stdout=subprocess.PIPE).stdout.decode('utf-8'); #dprint(out_hist.stdout.)
+        dprint('RUNNING/PRINT METABAT CMD'); out_metabat = subprocess.run(cmd + out_args_metabat, stdout=subprocess.PIPE).stdout.decode('utf-8'); dprint(out_metabat)
+
+         
 
         #####
         #####

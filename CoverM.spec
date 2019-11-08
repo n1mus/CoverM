@@ -8,7 +8,6 @@ module CoverM {
         string workspace_name;
         string workspace_id;
         string genome_ref;
-        string mapping_ref;
         string reads_ref;
 	string mapper;
     } CoverMParams;

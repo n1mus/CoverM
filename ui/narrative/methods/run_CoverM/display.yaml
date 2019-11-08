@@ -24,6 +24,13 @@ suggestions:
 # Configure the display and description of parameters
 #
 parameters :
+    cover_per:
+        ui-name : |
+            Genome or contig
+        short-hint : |
+            Calculate coverage per genome or per contig
+        long-hint  : |
+            Calculate coverage per genome or per contig
     genome_ref:
         ui-name : |
             Genome(s)

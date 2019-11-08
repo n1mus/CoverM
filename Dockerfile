@@ -8,16 +8,20 @@ MAINTAINER KBase Developer
 
 # RUN apt-get update
 
+
+
+# Install coverm
 RUN curl --location https://github.com/wwood/CoverM/releases/download/v0.3.0/coverm-x86_64-unknown-linux-musl-0.3.0.tar.gz > coverm.tar.gz
 RUN tar xvfz coverm.tar.gz
 RUN mv coverm-x86_64-unknown-linux-musl-0.3.0/coverm /usr/local/bin/coverm
 RUN rm -r coverm*
 
+# Install minimap2
 RUN curl -L https://github.com/lh3/minimap2/releases/download/v2.17/minimap2-2.17_x64-linux.tar.bz2 | tar -jxvf -
 RUN mv minimap2-2.17_x64-linux/minimap2 /usr/local/bin/minimap2
 RUN rm -rf minimap2-2.17_x64-linux/
 
-
+# Install samtools
 RUN sudo apt-get --yes update
 RUN sudo apt-get --yes install gcc
 RUN sudo apt-get --yes install make
@@ -31,7 +35,10 @@ RUN tar -vxjf samtools-1.9.tar.bz2 && rm -rf samtools-1.9.tar.bz2
 RUN cd samtools-1.9 && make
 RUN mv samtools-1.9 /usr/local/bin/samtools-1.9
 ENV PATH="${PATH}:/usr/local/bin/samtools-1.9"
-RUN echo !!!!!!!!!! SAMTOOLS INSTALLED && echo $PATH
+
+# Install pandas & matplotlib
+RUN conda install --yes pandas
+RUN conda install --yes matplotlib
 
 
 # -----------------------------------------

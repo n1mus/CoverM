@@ -19,7 +19,7 @@ print = functools.partial(print, flush=True)
 
 
 
-def load_fastas(config, scratch, upa):
+def load_fastas(config, scratch: str, upa: str):
     '''
     Returns list of (fasta_path, upa)
     '''
@@ -82,7 +82,7 @@ def load_fastas(config, scratch, upa):
 ####################################################################################################################
 
 
-def fetch_reads_refs_from_sampleset(ref, ws_url, srv_wiz_url):
+def fetch_reads_refs_from_sampleset(ref: str, ws_url, srv_wiz_url):
     """
     From the given object ref, return a list of all reads objects that are a part of that
     object. E.g., if ref is a ReadsSet, return a list of all PairedEndLibrary or SingleEndLibrary
@@ -133,8 +133,8 @@ def fetch_reads_refs_from_sampleset(ref, ws_url, srv_wiz_url):
     return refs
 
 
-
-def dl_getPath_from_upa(ref, callback_url):
+# fetch_reads_from_reference
+def dl_getPath_from_upa(ref: str, callback_url) -> dict:
     """
     Fetch a FASTQ file (or 2 for paired-end) from a reads reference.
     Returns the following structure:

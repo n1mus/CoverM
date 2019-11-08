@@ -19,18 +19,7 @@
             "field_type": "text",
             "text_options": {
                 "valid_ws_types": ["KBaseGenomes.ContigSet", "KBaseGenomeAnnotations.Assembly", "KBaseGenomes.Genome", "KBaseSets.GenomeSet", "KBaseSearch.GenomeSet", "KBaseSets.AssemblySet", "KBaseMetagenomes.BinnedContigs" ]
-	    }
-        },{
-            "id": "mapping_ref",
-            "optional": true,
-            "advanced": false,
-            "allow_multiple": false,
-            "default_values": [ "" ],
-            "field_type": "text",
-            "text_options": {
-                "valid_ws_types": ["KBaseSets.ReadsAlignmentSet"]
-            }
- 
+	        }
         },{
             "id": "reads_ref",
             "optional": false,
@@ -96,6 +85,10 @@
                 },{
                     "narrative_system_variable": "workspace_id",
                     "target_property": "workspace_id"
+                },{
+                    "input_parameter": "cover_per",
+                    "target_property": "cover_per"
+
                 },{
                     "input_parameter": "genome_ref",
                     "target_property": "genome_ref",
