@@ -11,7 +11,7 @@ from installed_clients.ReadsUtilsClient import ReadsUtils
 from installed_clients.WorkspaceClient import Workspace
 from installed_clients.SetAPIServiceClient import SetAPI
 
-print = functools.partial(print, flush=True)
+from .PrintUtil import *
 
 ####################################################################################################################
 ##### Code below from kb_gtdbk (with edits)

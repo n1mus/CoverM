@@ -5,15 +5,17 @@ import os
 import subprocess
 import pprint
 import itertools
+import uuid
 
 from Bio import SeqIO
 
 from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.AssemblyUtilClient import AssemblyUtil
 from installed_clients.ReadsUtilsClient import ReadsUtils
+from installed_clients.DataFileUtilClient import DataFileUtil
 
-from . import FileUtil, OutputUtil
-from .PrintUtil import *
+from .util import *
+from .util.PrintUtil import *
 
 
 
@@ -85,11 +87,10 @@ class CoverM:
         genome_ref = params['genome_ref']
 
 
-        cmd = ['coverm']
-        cmd.append(params['cover_per'])
+        cmd = ['coverm', 'genome']
         cmd.extend('--min-covered-fraction 0'.split())
         cmd.extend('--bam-file-cache-directory bam_dir'.split()) # Output BAM files generated during alignment to this directory
-        cmd.extend('--output-format sparse'.split())
+        cmd.extend('--output-format sparse'.split()) # TODO toggle
 
 
         # RETRIEVE FASTAS
@@ -115,9 +116,8 @@ class CoverM:
 
 
         #
-        if params['cover_per'] == 'genome':
-            cmd.append('--genome-fasta-files')
-            cmd.extend(fasta_paths)
+        cmd.append('--genome-fasta-files')
+        cmd.extend(fasta_paths)
 
 
         # RETRIEVE READS OR ALIGNMENT
@@ -125,62 +125,6 @@ class CoverM:
             raise NotImplementedError()
 
         elif 'reads_ref' in params and params['reads_ref'] != None:
-            dprint('Retrieving reads')
-            '''
-            # get all refs if ref is to set
-            dprint(f'reads_ref before fetch from sampleset: {reads_ref}') 
-            reads_refs = Util.fetch_reads_refs_from_sampleset(reads_ref, self.workspace_url, self.srv_wiz_url) # upa -> [{ref:upa,name}]
-            dprint(f'reads_ref after fetch from sampleset: {reads_ref}')
-
-            # retrieve file info for all refs
-            readsRef_fileInfo_list = []
-            for reads_ref in reads_refs:
-                readsRef_fileInfo = Util.fetch_reads_from_reference(reads_ref['ref'], self.callback_url) # repeat: ref -> [{style,file_fwd,file_rev,object_ref}]
-                readsRef_fileInfo_list.append(readsRef_fileInfo)
-            
-            dprint(f'readsRef_fileInfo_list: {readsRef_fileInfo_list}')
-
-            for readsRef_fileInfo in readsRef_fileInfo_list:
-            reads_path = reads_pathAndInfo['files'][reads_ref]['files']['fwd_name']
-            '''
-
-
-            # GET ALL REFS IF REF IS TO SET
-            reads_ref = params['reads_ref']
-            dprint(f'reads_ref before fetch from sampleset: {reads_ref}') 
-            reads_refsAndInfo = FileUtil.fetch_reads_refs_from_sampleset(reads_ref, self.workspace_url, self.srv_wiz_url) # upa -> [{'ref':upa,'name':name}]
-            dprint(f'reads_refsAndInfo after fetch from sampleset: {reads_refsAndInfo}')
-
-
-            # ISOLATE REFS
-            reads_refs = [reads_refAndInfo['ref'] for reads_refAndInfo in reads_refsAndInfo]
-
-
-            # REFS -> PATHS
-            reads_pathsAndInfo = list(map(FileUtil.dl_getPath_from_upa, reads_refs, itertools.repeat(self.callback_url)))
-            
-
-            # SEPARATE PATHS BY TYPE
-            readsPaths_byType_dict = dict()
-            readsPaths_byType_dict['single'] = [reads_pathAndInfo['file_fwd'] for reads_pathAndInfo in reads_pathsAndInfo if reads_pathAndInfo['style'] == 'single']
-            readsPaths_byType_dict['interleaved'] = [reads_pathAndInfo['file_fwd'] for reads_pathAndInfo in reads_pathsAndInfo if reads_pathAndInfo['style'] == 'interleaved']
-
-
-            '''
-            reads_pathAndInfo = ReadsUtils(self.callback_url).download_reads({ 
-                                                                        "read_libraries": [reads_refs],
-                                                                        "interleaved": "true"
-
-                                                                        })
-                                                                        
-            dprint(f'reads_pathAndInfo:')
-            dprint(reads_pathAndInfo)
-
-
-            '''
-
-
-
 
             #
             cmd.append('--mapper')
@@ -196,6 +140,31 @@ class CoverM:
                                        #  then reads will be mapped to references
                                        #  separately as sharded BAMs.
             cmd.extend(fasta_paths)
+
+
+            dprint('Retrieving reads')
+
+            # GET ALL REFS IF REF IS TO SET
+
+            reads_ref = params['reads_ref']; dprint(f'reads_ref before fetch from sampleset: {reads_ref}') 
+            # upa -> [{'ref':upa,'name':name}]
+            reads_refsAndInfo = FileUtil.fetch_reads_refs_from_sampleset(reads_ref, self.workspace_url, self.srv_wiz_url); dprint(f'reads_refsAndInfo after fetch from sampleset: {reads_refsAndInfo}')
+            
+
+
+            # ISOLATE REFS
+            reads_refs = [reads_refAndInfo['ref'] for reads_refAndInfo in reads_refsAndInfo]
+
+
+            # REFS -> PATHS
+            reads_pathsAndInfo = list(map(FileUtil.dl_getPath_from_upa, reads_refs, itertools.repeat(self.callback_url)))
+            
+
+            # SEPARATE PATHS BY READLIB TYPE
+            readsPaths_byType_dict = dict()
+            readsPaths_byType_dict['single'] = [reads_pathAndInfo['file_fwd'] for reads_pathAndInfo in reads_pathsAndInfo if reads_pathAndInfo['style'] == 'single']
+            readsPaths_byType_dict['interleaved'] = [reads_pathAndInfo['file_fwd'] for reads_pathAndInfo in reads_pathsAndInfo if reads_pathAndInfo['style'] == 'interleaved']
+
 
             
             # ADD READS PATHS TO CMD
@@ -219,28 +188,49 @@ class CoverM:
 
         # OUTPUT TYPE ARGS
 
-        out_args_genStats = '--methods relative_abundance mean trimmed_mean covered_fraction covered_bases variance length count reads_per_base rpkm'.split()  
-        out_args_hist = '--methods coverage_histogram'.split()
+        args_genStats = '--methods relative_abundance mean trimmed_mean covered_fraction covered_bases variance length count reads_per_base rpkm'.split()  
+        args_hist = '--methods coverage_histogram'.split()
         out_args_metabat = '--methods metabat'.split()
                 
 
-        if params['cover_per'] == 'contig':
-            out_args_genStats.remove('relative_abundance')
 
 
 
         # RUN CMD
 
-        dprint('CMDs:', cmd, out_args_genStats, out_args_hist)
+        dprint('CMDs:', cmd, args_genStats, args_hist)
 
         
         
 
-        dprint('RUNNING/PRINT STATS CMD'); out_genStats = subprocess.run(cmd + out_args_genStats, stdout=subprocess.PIPE).stdout.decode('utf-8'); dprint(out_genStats)
-        dprint('RUNNING/PRINT HIST CMD'); out_hist = subprocess.run(cmd + out_args_hist, stdout=subprocess.PIPE).stdout.decode('utf-8'); #dprint(out_hist.stdout.)
-        dprint('RUNNING/PRINT METABAT CMD'); out_metabat = subprocess.run(cmd + out_args_metabat, stdout=subprocess.PIPE).stdout.decode('utf-8'); dprint(out_metabat)
+        dprint('RUNNING/PRINT STATS CMD'); out_genStats = subprocess.run(cmd + args_genStats, stdout=subprocess.PIPE).stdout.decode('utf-8'); dprint(out_genStats)
+        dprint('RUNNING/PRINT HIST CMD'); out_hist = subprocess.run(cmd + args_hist, stdout=subprocess.PIPE).stdout.decode('utf-8'); dprint(out_hist)
 
-         
+        
+        out_handler = OutputUtil.CoverMOutput(cmd + args_genStats, out_genStats, cmd + args_hist, out_hist)
+
+
+
+        # HTML OUTPUT
+
+        dprint('Generating html')
+
+
+        htmlOutput_dir = os.path.join(self.shared_folder, f'htmlOutput_{uuid.uuid4()}'); os.mkdir(htmlOutput_dir)
+        htmlOutput_path = os.path.join(htmlOutput_dir, 'report.html')
+
+        with open(htmlOutput_path, 'w') as htmlOutput_file:
+            htmlOutput_file.write(out_handler.get_html_wholeStr())
+
+        dfu = DataFileUtil(self.callback_url)
+
+        htmlZip_shock_id = dfu.file_to_shock({'file_path': htmlOutput_dir,
+                                              'pack': 'zip'})['shock_id']
+        
+        htmlZip_report_dict = {'shock_id': htmlZip_shock_id, 
+                               'name': 'report.html',
+                                'label': 'report.html',
+                                'description': 'CoverM output in HTML table'}
 
         #####
         #####
@@ -249,10 +239,20 @@ class CoverM:
         #####
         #####
 
-        report = KBaseReport(self.callback_url)
-        report_info = report.create({'report': {'objects_created':[],
-                                                'text_message': 'This is the text in the report'},
-                                                'workspace_name': params['workspace_name']})
+
+        report_params = {
+            'message': '`report_params message`',
+            'report_object_name': 'CoverM.Report',
+            'workspace_name': params['workspace_name'],
+            'warnings': ['`no warnings`', 'none'],
+            'file_links': [htmlZip_report_dict],
+            'html_links': [htmlZip_report_dict],
+            'direct_html_link_index': 0
+            }
+
+        report_client = KBaseReport(self.callback_url)
+        report_info = report_client.create_extended_report(report_params)
+                
         output = {
             'report_name': report_info['name'],
             'report_ref': report_info['ref'],

@@ -86,18 +86,9 @@
                     "narrative_system_variable": "workspace_id",
                     "target_property": "workspace_id"
                 },{
-                    "input_parameter": "cover_per",
-                    "target_property": "cover_per"
-
-                },{
                     "input_parameter": "genome_ref",
                     "target_property": "genome_ref",
 		            "target_type_transform": "resolved-ref"
-                },{
-                    "input_parameter": "mapping_ref",
-                    "target_property": "mapping_ref",
-		            "target_type_transform": "resolved-ref"
-
                 },{
                     "input_parameter": "reads_ref",
                     "target_property": "reads_ref",

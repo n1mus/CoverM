@@ -64,7 +64,6 @@ class CoverMTest(unittest.TestCase):
         # self.assertEqual(ret[...], ...) or other unittest methods
         result = self.serviceImpl.run_CoverM(self.ctx, {
             'workspace_name': self.wsName,
-            'cover_per': 'contig',
             'genome_ref': self.rhodo_assembly_upa,
             'reads_ref': self.rhodo_pairedEndLib_upa,
             'mapper': 'minimap2-sr'
