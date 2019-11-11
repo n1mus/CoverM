@@ -38,7 +38,7 @@ ENV PATH="${PATH}:/usr/local/bin/samtools-1.9"
 
 # Install pandas & matplotlib
 RUN conda install --yes pandas
-#RUN conda install --yes matplotlib
+RUN conda install --yes matplotlib
 
 
 # -----------------------------------------

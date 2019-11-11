@@ -207,7 +207,6 @@ class CoverM:
         dprint('RUNNING/PRINT HIST CMD'); out_hist = subprocess.run(cmd + args_hist, stdout=subprocess.PIPE).stdout.decode('utf-8'); dprint(out_hist)
 
         
-        out_handler = OutputUtil.CoverMOutput(cmd + args_genStats, out_genStats, cmd + args_hist, out_hist)
 
 
 
@@ -217,10 +216,15 @@ class CoverM:
 
 
         htmlOutput_dir = os.path.join(self.shared_folder, f'htmlOutput_{uuid.uuid4()}'); os.mkdir(htmlOutput_dir)
-        htmlOutput_path = os.path.join(htmlOutput_dir, 'report.html')
 
-        with open(htmlOutput_path, 'w') as htmlOutput_file:
-            htmlOutput_file.write(out_handler.get_html_wholeStr())
+        out_handler = OutputUtil.CoverMOutput(cmd + args_genStats, 
+                                            out_genStats, 
+                                            cmd + args_hist, 
+                                            out_hist, 
+                                            htmlOutput_dir)
+
+        out_handler.gen_write_html_output()
+
 
         dfu = DataFileUtil(self.callback_url)
 
@@ -228,8 +232,8 @@ class CoverM:
                                               'pack': 'zip'})['shock_id']
         
         htmlZip_report_dict = {'shock_id': htmlZip_shock_id, 
-                               'name': 'report.html',
-                                'label': 'report.html',
+                               'name': 'coverm_report.html',
+                                'label': 'coverm_report.html',
                                 'description': 'CoverM output in HTML table'}
 
         #####
@@ -244,7 +248,7 @@ class CoverM:
             'message': '`report_params message`',
             'report_object_name': 'CoverM.Report',
             'workspace_name': params['workspace_name'],
-            'warnings': ['`no warnings`', 'none'],
+            'warnings': [],
             'file_links': [htmlZip_report_dict],
             'html_links': [htmlZip_report_dict],
             'direct_html_link_index': 0
