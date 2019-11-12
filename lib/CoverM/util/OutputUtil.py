@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import io
 import os
 
+from .PrintUtil import *
 
 
 class CoverMOutput():
@@ -36,7 +37,10 @@ class CoverMOutput():
             hist = bases_col[genomes_col == genome].tolist()
             hist_bins = coverage_col[genomes_col == genome].tolist()
             
-            plt.hist(hist, hist_bins)
+            dprint(f'hist: {hist}')
+            dprint(f'hist_bins: {hist_bins}')
+
+            plt.hist(hist, bins=hist_bins)
 
             img_filename = f'hist_{genome}.png'
             img_path = os.path.join(self.save_dir, img_filename)
