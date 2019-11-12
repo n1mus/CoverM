@@ -70,6 +70,16 @@
                 ]
         }
  
+        },{
+            "id" : "min_read_aligned_length",
+            "optional" : true,
+            "advanced" : true,
+            "allow_multiple" : false,
+            "default_values" : [ "0" ],
+            "field_type" : "text",
+            "text_options" : {
+                "validate_as" : "int"
+            }
         }
 
     ],
@@ -97,6 +107,9 @@
                 },{
                     "input_parameter": "mapper",
                     "target_property": "mapper"
+                },{
+                    "input_parameter": "min_read_aligned_length",
+                    "target_property": "min_read_aligned_length"
                 }
 
             ],

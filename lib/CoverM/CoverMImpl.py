@@ -6,6 +6,7 @@ import subprocess
 import pprint
 import itertools
 import uuid
+import re
 
 from Bio import SeqIO
 
@@ -88,9 +89,8 @@ class CoverM:
 
 
         cmd = ['coverm', 'genome']
-        cmd.extend('--min-covered-fraction 0'.split())
-        cmd.extend('--bam-file-cache-directory bam_dir'.split()) # Output BAM files generated during alignment to this directory
-        cmd.extend('--output-format sparse'.split()) # TODO toggle
+        cmdArgs_out = '--min-covered-fraction 0'.split()
+        cmdArgs_out.extend('--output-format sparse'.split()) # TODO toggle
 
 
         # RETRIEVE FASTAS
@@ -127,11 +127,11 @@ class CoverM:
         elif 'reads_ref' in params and params['reads_ref'] != None:
 
             #
-            cmd.append('--mapper')
-            cmd.append(params['mapper'])
+            cmdArgs_align = ['--mapper']
+            cmdArgs_align.append(params['mapper'])
 
 
-            cmd.append('--reference')  # FASTA file of contigs e.g. concatenated 
+            cmdArgs_align.append('--reference')  # FASTA file of contigs e.g. concatenated 
                                        #  genomes or assembly, or minimap2 index
                                        # (with --minimap2-reference-is-index),
                                        #  or BWA index stem (with -p bwa-mem).
@@ -139,7 +139,7 @@ class CoverM:
                                        #  provided and --sharded is specified,
                                        #  then reads will be mapped to references
                                        #  separately as sharded BAMs.
-            cmd.extend(fasta_paths)
+            cmdArgs_align.extend(fasta_paths)
 
 
             dprint('Retrieving reads')
@@ -170,14 +170,25 @@ class CoverM:
             # ADD READS PATHS TO CMD
 
             if readsPaths_byType_dict['interleaved']:
-                cmd.append('--interleaved') # interleaved FASTA(Q) files for mapping
-                cmd.extend(readsPaths_byType_dict['interleaved'])
+                cmdArgs_align.append('--interleaved') # interleaved FASTA(Q) files for mapping
+                cmdArgs_align.extend(readsPaths_byType_dict['interleaved'])
 
             if readsPaths_byType_dict['single']:
-                cmd.append('--single')
-                cmd.extend(readsPaths_byType_dict['single'])
+                cmdArgs_align.append('--single')
+                cmdArgs_align.extend(readsPaths_byType_dict['single'])
 
 
+
+
+
+            # CACHE BAM
+
+            bam_dir_fullPath = os.path.join(self.shared_folder, 'bam_dir')
+            cmdArgs_align.extend(['--bam-file-cache-directory', bam_dir_fullPath]) # Output BAM files generated during alignment to this directory
+
+
+
+            
 
 
         else:
@@ -188,23 +199,37 @@ class CoverM:
 
         # OUTPUT TYPE ARGS
 
-        args_genStats = '--methods relative_abundance mean trimmed_mean covered_fraction covered_bases variance length count reads_per_base rpkm'.split()  
-        args_hist = '--methods coverage_histogram'.split()
-        out_args_metabat = '--methods metabat'.split()
+        cmdArgs_genStats = '--methods relative_abundance mean trimmed_mean covered_fraction covered_bases variance length count reads_per_base rpkm'.split()  
+        cmdArgs_hist = '--methods coverage_histogram'.split()
                 
 
 
 
 
-        # RUN CMD
+        # RUN STATS CMD
 
-        dprint('CMDs:', cmd, args_genStats, args_hist)
+        cmd_run = cmd + cmdArgs_align + cmdArgs_genStats + cmdArgs_out
+        dprint('CMD:', cmd_run)
+        dprint('RUNNING/PRINT STATS CMD'); dprint(cmd_run); out_genStats = subprocess.run(cmd_run, stdout=subprocess.PIPE).stdout.decode('utf-8'); dprint(out_genStats)
+       
 
+
+        # SORT BAM
         
+        bam_filenames = [f for f in os.listdir(bam_dir_fullPath) if re.compile('.*\.bam').fullmatch(f) ]
+        bam_fullPaths = list(map(lambda fn: os.path.join(bam_dir_fullPath, fn), bam_filenames))
+        '''for bam_fullPath in bam_fullPaths:
+            out = subprocess.run(f'samtools sort {bam_fullPath} > {bam_fullPath}', shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
+            dprint(out)
+        '''
         
+        # RUN HIST CMD
 
-        dprint('RUNNING/PRINT STATS CMD'); out_genStats = subprocess.run(cmd + args_genStats, stdout=subprocess.PIPE).stdout.decode('utf-8'); dprint(out_genStats)
-        dprint('RUNNING/PRINT HIST CMD'); out_hist = subprocess.run(cmd + args_hist, stdout=subprocess.PIPE).stdout.decode('utf-8'); dprint(out_hist)
+
+        cmdArgs_reuseMap = ['--bam-files'] + bam_fullPaths
+        
+        cmd_run = cmd + cmdArgs_reuseMap + cmdArgs_hist + cmdArgs_out
+        dprint('RUNNING/PRINT HIST CMD'); dprint(cmd_run); out_hist = subprocess.run(cmd_run, stdout=subprocess.PIPE).stdout.decode('utf-8'); dprint(out_hist)
 
         
 
@@ -217,9 +242,9 @@ class CoverM:
 
         htmlOutput_dir = os.path.join(self.shared_folder, f'htmlOutput_{uuid.uuid4()}'); os.mkdir(htmlOutput_dir)
 
-        out_handler = OutputUtil.CoverMOutput(cmd + args_genStats, 
+        out_handler = OutputUtil.CoverMOutput(cmd + cmdArgs_genStats, 
                                             out_genStats, 
-                                            cmd + args_hist, 
+                                            cmd + cmdArgs_hist, 
                                             out_hist, 
                                             htmlOutput_dir)
 

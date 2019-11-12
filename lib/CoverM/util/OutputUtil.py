@@ -48,7 +48,7 @@ class CoverMOutput():
 
 
     def to_image_tag(self, img_filename):
-        return f'<img src={img_filename}.png alt={img_filename}>'
+        return f'<img src={img_filename} alt={img_filename}>'
 
 
 

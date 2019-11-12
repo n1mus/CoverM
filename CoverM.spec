@@ -10,6 +10,7 @@ module CoverM {
         string genome_ref;
         string reads_ref;
 	string mapper;
+	int min_read_aligned_length;
     } CoverMParams;
 
     typedef structure {
