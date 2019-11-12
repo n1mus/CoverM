@@ -79,8 +79,10 @@ class CoverM:
         #BEGIN run_CoverM
         ############################################################################################
         ############################################################################################
-        # TODO handle alignment input (also install htslib)
+        # TODO handle alignment input (also install htslib?)
         # TODO check if alignment/reads input matches with assembly provenance info
+        # TODO dump terminal info
+        # TODO check generated BAM sorted
 
         dprint(f'Running run_CoverM with:\nctx: {ctx}\nparams: {params}')
         dprint(f'ctx.provenance(): {ctx.provenance()}')
@@ -88,7 +90,7 @@ class CoverM:
         genome_ref = params['genome_ref']
 
 
-        cmd = ['coverm', 'genome']
+        cmd = 'coverm genome --threads 2'.split()
         cmdArgs_out = '--min-covered-fraction 0'.split()
         cmdArgs_out.extend('--output-format sparse'.split()) # TODO toggle
 
@@ -218,10 +220,11 @@ class CoverM:
         
         bam_filenames = [f for f in os.listdir(bam_dir_fullPath) if re.compile('.*\.bam').fullmatch(f) ]
         bam_fullPaths = list(map(lambda fn: os.path.join(bam_dir_fullPath, fn), bam_filenames))
-        '''for bam_fullPath in bam_fullPaths:
-            out = subprocess.run(f'samtools sort {bam_fullPath} > {bam_fullPath}', shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
-            dprint(out)
-        '''
+        for bam_fullPath in bam_fullPaths:
+            if 'coordinate' not in subprocess.run(f'samtools view -H {bam_fullPath} | head -1', shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8'):
+                dprint('WARNING ' * 30 + f'{bam_fullPath} is not coordinate sorted')
+                dprint(subprocess.run(f'samtools sort {bam_fullPath} > temp && mv temp {bam_fullPath}', shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8'))
+        
         
         # RUN HIST CMD
 
@@ -242,9 +245,9 @@ class CoverM:
 
         htmlOutput_dir = os.path.join(self.shared_folder, f'htmlOutput_{uuid.uuid4()}'); os.mkdir(htmlOutput_dir)
 
-        out_handler = OutputUtil.CoverMOutput(cmd + cmdArgs_genStats, 
+        out_handler = OutputUtil.CoverMOutput(cmd_run, 
                                             out_genStats, 
-                                            cmd + cmdArgs_hist, 
+                                            cmd_run, 
                                             out_hist, 
                                             htmlOutput_dir)
 

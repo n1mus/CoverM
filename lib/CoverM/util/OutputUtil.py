@@ -57,7 +57,7 @@ class CoverMOutput():
 
 
     def get_final_htmlTable(self):
-        return self.statsOut_df.to_html(escape=False)
+        return self.statsOut_df.to_html(justify='center', escape=False)
 
 
 
