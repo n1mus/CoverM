@@ -2,6 +2,7 @@ import os
 import logging
 from pprint import pprint
 import functools
+from shutil import copyfile
 
 from installed_clients.AssemblyUtilClient import AssemblyUtil
 from installed_clients.DataFileUtilClient import DataFileUtil

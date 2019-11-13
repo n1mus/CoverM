@@ -90,7 +90,13 @@ class CoverM:
         genome_ref = params['genome_ref']
 
 
-        cmd = 'coverm genome --threads 2'.split()
+        cmd = 'coverm genome'.split()
+
+        if 'mode' in params and params['mode'] == 'local_test':
+            cmd += '--threads 8'.split()
+        else:
+            cmd += '--threads 2'.split()
+
         cmdArgs_out = '--min-covered-fraction 0'.split()
         cmdArgs_out.extend('--output-format sparse'.split()) # TODO toggle
 
@@ -108,7 +114,7 @@ class CoverM:
         dprint(f'FASTA_PATHS: {fasta_paths}')
         dprint(f'NUM FASTAS: {len(fasta_paths)}')
         for fasta_path in fasta_paths:
-            dprint(f'path: {fasta_paths[0][0]}, upa: {fasta_paths[0][1]}')
+            dprint(f'path: {fasta_path[0]}, upa: {fasta_path[1]}')
 
 
 
@@ -185,7 +191,7 @@ class CoverM:
 
             # CACHE BAM
 
-            bam_dir_fullPath = os.path.join(self.shared_folder, 'bam_dir')
+            bam_dir_fullPath = os.path.join(self.shared_folder, f'bam_dir_{uuid.uuid4()}')
             cmdArgs_align.extend(['--bam-file-cache-directory', bam_dir_fullPath]) # Output BAM files generated during alignment to this directory
 
 
@@ -277,7 +283,7 @@ class CoverM:
             'report_object_name': 'CoverM.Report',
             'workspace_name': params['workspace_name'],
             'warnings': [],
-            'file_links': [htmlZip_report_dict],
+            'file_links': [],
             'html_links': [htmlZip_report_dict],
             'direct_html_link_index': 0
             }

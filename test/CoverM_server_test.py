@@ -2,6 +2,7 @@
 import os
 import time
 import unittest
+import itertools
 from configparser import ConfigParser
 
 from CoverM.CoverMImpl import CoverM
@@ -17,6 +18,17 @@ class CoverMTest(unittest.TestCase):
 
     rhodo_pairedEndLib_upa = '33163/2/1'
     rhodo_assembly_upa = '33163/6/2'
+
+    SURF_pairedEndLib_upa = '33297/6/1'
+    SURF_assembly_upa = '33297/10/3'
+    SURF_MEGAHITMaxBin_BinnedCont_upa = '33297/15/1'
+    SURF_MEGAHITMetaBAT_BinnedCont_upa = '33297/16/1'
+    SURF_MEGAHITCONCOCT_BinnedCont_upa = '33297/14/9'
+
+    lib2_singleEndLib_upa = '33297/9/1'
+    lib2_assembly_upa = '33297/11/1'
+    lib2_CONCOCT_BinnedCont_upa = '33297/13/3'
+
 
     @classmethod
     def setUpClass(cls):
@@ -62,12 +74,22 @@ class CoverMTest(unittest.TestCase):
         #
         # Check returned data with
         # self.assertEqual(ret[...], ...) or other unittest methods
-        result = self.serviceImpl.run_CoverM(self.ctx, {
+        '''result = self.serviceImpl.run_CoverM(self.ctx, {
+            'mode': 'local_test'
             'workspace_name': self.wsName,
             'genome_ref': self.rhodo_assembly_upa,
             'reads_ref': self.rhodo_pairedEndLib_upa,
             'mapper': 'minimap2-sr'
+            })'''
+        result = self.serviceImpl.run_CoverM(self.ctx, {
+            'mode': 'local_test',
+            'workspace_name': self.wsName,
+            'genome_ref': self.SURF_MEGAHITMetaBAT_BinnedCont_upa,
+            'reads_ref': self.SURF_pairedEndLib_upa,
+            'mapper': 'minimap2-sr'
             })
+
+
     
     @classmethod
     def tearDownClass(cls):
