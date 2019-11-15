@@ -84,6 +84,13 @@ class CoverM:
         # TODO dump terminal info
         # TODO check generated BAM sorted
 
+
+        # TEST DISK SPACE
+        dprint('DISK SPACE', subprocess.run('df', shell=True).stdout.decode('utf-8'))
+
+
+        # PARAMS
+
         dprint(f'Running run_CoverM with:\nctx: {ctx}\nparams: {params}')
         dprint(f'ctx.provenance(): {ctx.provenance()}')
 
@@ -217,8 +224,7 @@ class CoverM:
         # RUN STATS CMD
 
         cmd_run = cmd + cmdArgs_align + cmdArgs_genStats + cmdArgs_out
-        dprint('CMD:', cmd_run)
-        dprint('RUNNING/PRINT STATS CMD'); dprint(cmd_run); out_genStats = subprocess.run(cmd_run, stdout=subprocess.PIPE).stdout.decode('utf-8'); dprint(out_genStats)
+        dprint('RUNNING/PRINT STATS CMD'); dprint(' '.join(cmd_run)); out_genStats = subprocess.run(cmd_run, stdout=subprocess.PIPE).stdout.decode('utf-8'); dprint(out_genStats)
        
 
 
@@ -231,14 +237,15 @@ class CoverM:
                 dprint('WARNING ' * 30 + f'{bam_fullPath} is not coordinate sorted')
                 dprint(subprocess.run(f'samtools sort {bam_fullPath} > temp && mv temp {bam_fullPath}', shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8'))
         
-        
-        # RUN HIST CMD
-
-
         cmdArgs_reuseMap = ['--bam-files'] + bam_fullPaths
+
+       
+
+
+        # RUN HIST CMD
         
         cmd_run = cmd + cmdArgs_reuseMap + cmdArgs_hist + cmdArgs_out
-        dprint('RUNNING/PRINT HIST CMD'); dprint(cmd_run); out_hist = subprocess.run(cmd_run, stdout=subprocess.PIPE).stdout.decode('utf-8'); dprint(out_hist)
+        dprint('RUNNING/PRINT HIST CMD'); dprint(' '.join(cmd_run)); out_hist = subprocess.run(cmd_run, stdout=subprocess.PIPE).stdout.decode('utf-8'); dprint(out_hist)
 
         
 

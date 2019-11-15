@@ -13,7 +13,7 @@ class CoverMOutput():
         '''
         '''
         self.statsOut_df = pd.read_csv(io.StringIO(statsOut), sep='\t', header=0)  
-        self.histOut_df = pd.read_csv(io.StringIO(histOut), sep='\t', header=0)
+        self.histOut_df = pd.read_csv(io.StringIO(histOut), sep='\t', header=0, usecols=['Genome','Bases','Coverage'], dtype={'Genome': str, 'Bases':int, 'Coverage':int})
         self.save_dir = save_dir
 
 
