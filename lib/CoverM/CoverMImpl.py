@@ -86,7 +86,7 @@ class CoverM:
 
 
         # TEST DISK SPACE
-        dprint('DISK SPACE', subprocess.run('df', shell=True).stdout.decode('utf-8'))
+        dprint('DISK SPACE', subprocess.run('df', shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8'))
 
 
         # PARAMS
@@ -98,14 +98,16 @@ class CoverM:
 
 
         cmd = 'coverm genome'.split()
-
+ 
         if 'mode' in params and params['mode'] == 'local_test':
             cmd += '--threads 8'.split()
+        elif 'mode' in params and params['mode'] == 'ssh':
+            cmd += '--threads 32'.split()
         else:
             cmd += '--threads 2'.split()
 
         cmdArgs_out = '--min-covered-fraction 0'.split()
-        cmdArgs_out.extend('--output-format sparse'.split()) # TODO toggle
+        cmdArgs_out += '--output-format sparse'.split() # TODO toggle
 
 
         # RETRIEVE FASTAS
@@ -131,8 +133,7 @@ class CoverM:
 
 
         #
-        cmd.append('--genome-fasta-files')
-        cmd.extend(fasta_paths)
+        cmd += ['--genome-fasta-files'] + fasta_paths
 
 
         # RETRIEVE READS OR ALIGNMENT
@@ -157,12 +158,16 @@ class CoverM:
             cmdArgs_align.extend(fasta_paths)
 
 
-            dprint('Retrieving reads')
+
+
 
             # GET ALL REFS IF REF IS TO SET
 
+            dprint('Retrieving reads')
+
             reads_ref = params['reads_ref']; dprint(f'reads_ref before fetch from sampleset: {reads_ref}') 
-            # upa -> [{'ref':upa,'name':name}]
+
+                                            # upa -> [{'ref':upa,'name':name}]
             reads_refsAndInfo = FileUtil.fetch_reads_refs_from_sampleset(reads_ref, self.workspace_url, self.srv_wiz_url); dprint(f'reads_refsAndInfo after fetch from sampleset: {reads_refsAndInfo}')
             
 
@@ -185,12 +190,10 @@ class CoverM:
             # ADD READS PATHS TO CMD
 
             if readsPaths_byType_dict['interleaved']:
-                cmdArgs_align.append('--interleaved') # interleaved FASTA(Q) files for mapping
-                cmdArgs_align.extend(readsPaths_byType_dict['interleaved'])
+                cmdArgs_align += ['--interleaved'] + readsPaths_byType_dict['interleaved']
 
             if readsPaths_byType_dict['single']:
-                cmdArgs_align.append('--single')
-                cmdArgs_align.extend(readsPaths_byType_dict['single'])
+                cmdArgs_align += ['--single'] + readsPaths_byType_dict['single']
 
 
 
@@ -228,7 +231,7 @@ class CoverM:
        
 
 
-        # SORT BAM
+        # SORT BAM TODO -> unnec?
         
         bam_filenames = [f for f in os.listdir(bam_dir_fullPath) if re.compile('.*\.bam').fullmatch(f) ]
         bam_fullPaths = list(map(lambda fn: os.path.join(bam_dir_fullPath, fn), bam_filenames))
@@ -286,8 +289,8 @@ class CoverM:
 
 
         report_params = {
-            'message': '`report_params message`',
-            'report_object_name': 'CoverM.Report',
+            'message': 'report_params message',
+            'report_object_name': 'CoverM.report',
             'workspace_name': params['workspace_name'],
             'warnings': [],
             'file_links': [],

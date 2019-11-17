@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 import io
 import os
 
@@ -27,6 +28,11 @@ class CoverMOutput():
 
 
     def write_insertToTable_hists(self):
+        '''
+        Extract histogram info
+        Write to .png
+        Insert img tag into table
+        '''
         genomes_col = self.histOut_df['Genome']
         bases_col = self.histOut_df['Bases']
         coverage_col = self.histOut_df['Coverage']
@@ -34,11 +40,24 @@ class CoverMOutput():
         genomes_uniq = set(genomes_col)
 
         for genome in genomes_uniq:
-            hist = bases_col[genomes_col == genome].tolist()
-            hist_bins = coverage_col[genomes_col == genome].tolist()
-            
-            dprint(f'hist: {hist}')
-            dprint(f'hist_bins: {hist_bins}')
+            dprint(f'Generating hist .png / html-img-tag for genome: {genome}')
+
+            hist = bases_col[genomes_col == genome].tolist(); 
+
+
+            # CHECK HIST_BINS TODO check this in coverm code
+            hist_bins = coverage_col[genomes_col == genome].tolist(); histBins_gen = range(len(hist));
+            if hist_bins != list(histBins_gen):
+                dprint('WARNING ' * 30 + f'hist_bins for genome {genome} is not [0 ... len(hist)-1]')
+           
+
+            # CONSOLIDATE HIST - TEMP HACK TODO
+            cutoff_ind = min(np.where(np.array(hist) == 2)[0][-1] + 100, len(hist) - 1)
+ 
+            hist = hist[:cutoff_ind]
+
+            #dprint(f'hist: {hist}')
+            #dprint(f'hist_bins: {hist_bins}')
 
             plt.hist(hist, bins=hist_bins)
 
@@ -52,7 +71,7 @@ class CoverMOutput():
 
 
     def to_image_tag(self, img_filename):
-        return f'<img src={img_filename} alt={img_filename}>'
+        return f'<img src={img_filename} alt={img_filename} height="200" width="400">'
 
 
 
