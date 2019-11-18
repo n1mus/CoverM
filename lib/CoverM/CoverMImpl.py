@@ -39,8 +39,8 @@ class CoverM:
     # the latter method is running.
     ######################################### noqa
     VERSION = "0.0.1"
-    GIT_URL = "https://github.com/n1mus/CoverM.git"
-    GIT_COMMIT_HASH = "13e8654e177fb64e6ca96c0b9f488fe8d68d9b65"
+    GIT_URL = "https://github.com/n1mus/coverm"
+    GIT_COMMIT_HASH = "59d31ca554efb14f0f28b801b40b30a4b51d511c"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -69,8 +69,9 @@ class CoverM:
         This example function returns results in a KBaseReport
         :param params: instance of type "CoverMParams" -> structure:
            parameter "workspace_name" of String, parameter "workspace_id" of
-           String, parameter "genome_ref" of String, parameter "mapping_ref"
-           of String, parameter "reads_ref" of String
+           String, parameter "genome_ref" of String, parameter "reads_ref" of
+           String, parameter "mapper" of String, parameter
+           "min_read_aligned_length" of Long
         :returns: instance of type "ReportResults" -> structure: parameter
            "report_name" of String, parameter "report_ref" of String
         """
@@ -102,7 +103,7 @@ class CoverM:
         if 'mode' in params and params['mode'] == 'local_test':
             cmd += '--threads 8'.split()
         elif 'mode' in params and params['mode'] == 'ssh':
-            cmd += '--threads 32'.split()
+            cmd += '--threads 64'.split()
         else:
             cmd += '--threads 2'.split()
 
@@ -315,8 +316,6 @@ class CoverM:
                              'output is not type dict as required.')
         # return the results
         return [output]
-
-
     def status(self, ctx):
         #BEGIN_STATUS
         returnVal = {'state': "OK",

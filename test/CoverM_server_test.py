@@ -74,20 +74,20 @@ class CoverMTest(unittest.TestCase):
         #
         # Check returned data with
         # self.assertEqual(ret[...], ...) or other unittest methods
-        result = self.serviceImpl.run_CoverM(self.ctx, {
+        '''result = self.serviceImpl.run_CoverM(self.ctx, {
             'mode': 'local_test',
             'workspace_name': self.wsName,
             'genome_ref': self.rhodo_assembly_upa,
             'reads_ref': self.rhodo_pairedEndLib_upa,
             'mapper': 'minimap2-sr'
-            })
-        '''result = self.serviceImpl.run_CoverM(self.ctx, {
-            'mode': 'local_test',
+            })'''
+        result = self.serviceImpl.run_CoverM(self.ctx, {
+            'mode': 'ssh',
             'workspace_name': self.wsName,
             'genome_ref': self.SURF_MEGAHITMetaBAT_BinnedCont_upa,
             'reads_ref': self.SURF_pairedEndLib_upa,
             'mapper': 'minimap2-sr'
-            })'''
+            })
 
 
     
