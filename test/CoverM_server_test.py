@@ -82,7 +82,7 @@ class CoverMTest(unittest.TestCase):
             'mapper': 'minimap2-sr'
             })'''
         result = self.serviceImpl.run_CoverM(self.ctx, {
-            'mode': 'ssh',
+            'mode': 'local_test',
             'workspace_name': self.wsName,
             'genome_ref': self.SURF_MEGAHITMetaBAT_BinnedCont_upa,
             'reads_ref': self.SURF_pairedEndLib_upa,

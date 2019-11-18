@@ -41,6 +41,10 @@ RUN conda install --yes pandas
 RUN conda install --yes matplotlib
 RUN conda install --yes numpy
 
+
+# Rust
+ENV RUST_BACKTRACE=1
+
 # -----------------------------------------
 
 COPY ./ /kb/module
